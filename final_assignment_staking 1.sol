@@ -19,6 +19,20 @@ contract Staking {
     address mapping_address;
 
     mapping(address =>Stake) public Stake_details;
+    
+    function staking(uint _amount, string memory _type) public returns(string memory){
+        Stake_details[msg.sender].stake_amount = _amount;
+        Stake_details[msg.sender].stake_type = _type;
+        Stake_details[msg.sender].stake_time = block.timestamp;
+        
+
+
+    }
+
+    function unstaking()public returns(string memory){
+
+    }
+
 
 
 }
