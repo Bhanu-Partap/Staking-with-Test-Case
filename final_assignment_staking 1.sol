@@ -8,9 +8,12 @@ contract Staking {
      constructor(ERC20Basic _addressERC20 ){
         Token=_addressERC20;
     }
-
-    struct
-
-
+    
+    struct Stake{
+        uint stake_amount;
+        uint stake_reward;
+        string stake_type;
+        uint stake_time;
+    }
 
 }
