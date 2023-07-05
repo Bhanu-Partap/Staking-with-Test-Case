@@ -15,5 +15,10 @@ contract Staking {
         string stake_type;
         uint stake_time;
     }
+    
+    address mapping_address;
+
+    mapping(address =>Stake) public Stake_details;
+
 
 }
