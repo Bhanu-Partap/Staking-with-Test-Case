@@ -24,6 +24,13 @@ contract Staking {
         Stake_details[msg.sender].stake_amount = _amount;
         Stake_details[msg.sender].stake_type = _type;
         Stake_details[msg.sender].stake_time = block.timestamp;
+        if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("fixed_staking"))){
+
+        }
+
+        else if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("unfixed_staking"))){
+
+        }
         
 
 
