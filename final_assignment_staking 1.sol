@@ -29,7 +29,8 @@ contract Staking {
         }
 
         else if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("unfixed_staking"))){
-
+            Stake_details[msg.sender].stake_amount = _amount;
+            Stake_details[msg.sender].stake_type = _type;
         }
         
 
