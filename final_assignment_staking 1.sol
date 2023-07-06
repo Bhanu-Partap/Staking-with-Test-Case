@@ -19,30 +19,36 @@ contract Staking {
     address mapping_address;
 
     mapping(address =>Stake) public Stake_details;
+    mapping(address => uint256) public balances;
+
+    event tokensStaked(address from, uint256 amount, uint duration);
+
+
     
     function staking(uint _amount, string memory _type) public returns(string memory){
         Stake_details[msg.sender].stake_amount = _amount;
         Stake_details[msg.sender].stake_type = _type;
         Stake_details[msg.sender].stake_time = block.timestamp;
         if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("fixed_staking"))){
-        Token.transferFrom(msg.sender, address(this), _amount);
-        balances[msg.sender] = balances[msg.sender]+_amount;
-        emit tokensStaked(msg.sender, _amount);
+            Token.transferFrom(msg.sender, address(this), _amount);
+            balances[msg.sender] = balances[msg.sender]+_amount;
+            emit tokensStaked(msg.sender, _amount,block.timestamp );
 
         }
 
         else if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("unfixed_staking"))){
-            Stake_details[msg.sender].stake_amount = _amount;
-            Stake_details[msg.sender].stake_type = _type;
+            // Stake_details[msg.sender].stake_amount = _amount;
+            // Stake_details[msg.sender].stake_type = _type;
+            Token.transferFrom(msg.sender, address(this), _amount);
+            balances[msg.sender] = balances[msg.sender]+_amount;
+            emit tokensStaked(msg.sender, _amount);
+
         }
-        
-
-
     }
 
-    function unstaking()public returns(string memory){
+    // function unstaking()public returns(string memory){
 
-    }
+    // }
 
 
 
