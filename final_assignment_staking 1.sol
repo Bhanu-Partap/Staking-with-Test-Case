@@ -25,6 +25,9 @@ contract Staking {
         Stake_details[msg.sender].stake_type = _type;
         Stake_details[msg.sender].stake_time = block.timestamp;
         if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("fixed_staking"))){
+        Token.transferFrom(msg.sender, address(this), _amount);
+        balances[msg.sender] = balances[msg.sender]+_amount;
+        emit tokensStaked(msg.sender, _amount);
 
         }
 
