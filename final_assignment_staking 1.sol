@@ -19,7 +19,11 @@ contract Staking_Token {
 
     address mapping_address;
     uint experttime_forfixedstaking = block.timestamp + 300 ;
+    uint penality_stake = 4; // percent 4%
+    uint fixedinterest_rate = 6;
+    uint unfixedinterest_rate = 2;
     uint stake_reward;
+    uint Interest;
 
 
     mapping(address =>Stake) public Stake_details;
@@ -36,7 +40,7 @@ contract Staking_Token {
     function staking(uint _amount, string memory _type, uint _duration) public  {
         require(Token.balanceOf(msg.sender)>=_amount,"Insufficient Balance");
         if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("fixed"))){
-            // require(_amount >0," Stake can not be 0 , Enter some amount of tokens");
+            require(_amount >0," Stake can not be 0 , Enter some amount of tokens");
             Stake_details[msg.sender].stake_amount = _amount;
             Stake_details[msg.sender].stake_type = _type;
             Stake_details[msg.sender].stake_time = block.timestamp + _duration;
@@ -48,10 +52,22 @@ contract Staking_Token {
         else if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("unfixed"))){
             Stake_details[msg.sender].stake_amount = _amount;
             Stake_details[msg.sender].stake_type = _type;
+            Token.transferFrom(msg.sender, address(this), _amount);
+
+
         }
     
 
     }
+
+
+    function interestCalculated(address _address) public returns(uint){
+        Interest = Stake_details[msg.sender].stake_amount * penality_stake * Stake_details[msg.sender].stake_time;
+        
+    }
+
+
+
 
     function unstaking()public returns(string memory){
 
