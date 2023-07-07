@@ -18,6 +18,7 @@ contract Staking_Token {
     }
 
     address mapping_address;
+    uint experttime_forfixedstaking = block.timestamp + 300 ;
     uint stake_reward;
 
 
@@ -27,12 +28,17 @@ contract Staking_Token {
 
     event tokensStaked(address from, uint256 amount, uint _duration);
 
+    // function balanceToken(address _address) public  {
+    //     Token.balanceOf(msg.sender);
+    // }
+
 
     function staking(uint _amount, string memory _type, uint _duration) public  {
         require(Token.balanceOf(msg.sender)>=_amount,"Insufficient Balance");
         if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("fixed"))){
             // require(_amount >0," Stake can not be 0 , Enter some amount of tokens");
             Stake_details[msg.sender].stake_amount = _amount;
+            Stake_details[msg.sender].stake_type = _type;
             Stake_details[msg.sender].stake_time = block.timestamp + _duration;
         Token.transferFrom(msg.sender, address(this), _amount);
         emit tokensStaked(msg.sender, _amount, block.timestamp);
@@ -41,6 +47,7 @@ contract Staking_Token {
 
         else if(keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked("unfixed"))){
             Stake_details[msg.sender].stake_amount = _amount;
+            Stake_details[msg.sender].stake_type = _type;
         }
     
 
