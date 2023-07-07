@@ -24,6 +24,8 @@ contract Staking_Token {
     uint unfixedinterest_rate = 2;
     uint stake_reward;
     uint Interest;
+    uint totalIntrestAmount;
+    uint finalAmount;
 
 
     mapping(address =>Stake) public Stake_details;
@@ -62,7 +64,16 @@ contract Staking_Token {
 
 
     function interestCalculated(address _address) public returns(uint){
-        Interest = Stake_details[msg.sender].stake_amount * penality_stake * Stake_details[msg.sender].stake_time;
+        if (Stake_details[msg.sender].stake_time > experttime_forfixedstaking){
+        Interest = Stake_details[msg.sender].stake_amount * fixedinterest_rate * Stake_details[msg.sender].stake_time;
+        totalIntrestAmount = (Stake_details[msg.sender].stake_amount + Interest) /100;
+        }
+        else if(Stake_details[msg.sender].stake_time < experttime_forfixedstaking){
+            // require();
+        Interest = (Stake_details[msg.sender].stake_amount * fixedinterest_rate * (Stake_details[msg.sender].stake_time -(Stake_details[msg.sender].stake_time - block.timestamp)));    
+        totalIntrestAmount = Stake_details[msg.sender].stake_amount + Interest;
+        finalAmount = (totalIntrestAmount - penality_stake) / 100 ;
+        }
         
     }
 
