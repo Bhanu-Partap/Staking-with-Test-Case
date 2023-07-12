@@ -17,6 +17,8 @@ contract Staking_Token {
         uint256 stake_time;
         uint256 starting_stake_time;
         bool isFixed;
+        address owner;
+        bool isClaimed;
     }
 
     address mapping_address;
@@ -34,9 +36,6 @@ contract Staking_Token {
 
     event tokensStaked(address from, uint256 amount, uint256 _duration);
 
-    // function balanceToken(address _address) public  {
-    //     Token.balanceOf(msg.sender);
-    // }
 
     function staking(uint256 _amount,string memory _type,uint256 _duration, bool _isFixed) public {
         require(Token.balanceOf(msg.sender) >= _amount, "Insufficient Balance");
@@ -44,8 +43,10 @@ contract Staking_Token {
             require( _amount > 0," Stake can not be 0 , Enter some amount of tokens");
             Stake_details[msg.sender].stake_amount = _amount;
             Stake_details[msg.sender].stake_type = _type;
-            Stake_details[msg.sender].stake_time = block.timestamp + _duration;
+            Stake_details[msg.sender].stake_time = expirytime_forfixedstaking + _duration;
             Stake_details[msg.sender].isFixed = _isFixed;
+            Stake_details[msg.sender].owner =msg.sender;
+            Stake_details[msg.sender].isClaimed =false;
             Stake_details[msg.sender].starting_stake_time = block.timestamp;
             Token.transferFrom(msg.sender, address(this), _amount);
             emit tokensStaked(msg.sender, _amount, block.timestamp);
@@ -54,7 +55,8 @@ contract Staking_Token {
             Stake_details[msg.sender].stake_amount = _amount;
             Stake_details[msg.sender].stake_type = _type;
             Stake_details[msg.sender].isFixed = _isFixed;
-            Token.transferFrom(msg.sender, address(this), _amount);
+            Stake_details[msg.sender].owner =msg.sender;
+            Stake_details[msg.sender].isClaimed =false;
             Stake_details[msg.sender].starting_stake_time = block.timestamp;
             Token.transferFrom(msg.sender, address(this), _amount);
             emit tokensStaked(msg.sender, _amount, block.timestamp);
@@ -63,42 +65,89 @@ contract Staking_Token {
 
     function unstaking(address _address) public returns (uint256) {
         console.log("hello");
-
+        require(msg.sender == Stake_details[msg.sender].owner,"Stake has not been initiated");
         if (Stake_details[_address].isFixed == true) {
-            if (Stake_details[_address].stake_time > expirytime_forfixedstaking ) {
+            // require(Stake_details[_address].stake_time > expirytime_forfixedstaking );
+            if (block.timestamp > Stake_details[msg.sender].stake_time ) {
                 console.log("inside the fixed stake after complete time");
-                Interest =Stake_details[_address].stake_amount *fixedinterest_rate *(block.timestamp - Stake_details[_address].starting_stake_time);
-                totalIntrestAmount =((Stake_details[_address].stake_amount + Interest) / 100)/365 days;
-                return totalIntrestAmount;
+                // uint256 fixed_time_after=  expirytime_forfixedstaking - Stake_details[_address].starting_stake_time ;
+                Interest =(Stake_details[_address].stake_amount *fixedinterest_rate ) /100;
+                totalIntrestAmount =Stake_details[_address].stake_amount + Interest;
                 console.log(totalIntrestAmount);
+                Token.transfer(_address, totalIntrestAmount);
+                delete Stake_details[_address];
+                Stake_details[msg.sender].isClaimed =true;
+                return totalIntrestAmount;
             }
 
             //unstaked before fixed time so the penality will be taken
-            else if (Stake_details[_address].stake_time < expirytime_forfixedstaking) {
+            else if (block.timestamp < Stake_details[msg.sender].stake_time) {
                 console.log("inside the fixed stake before complete time and got penality");
-                require(  Stake_details[_address].stake_time <  expirytime_forfixedstaking,"" );
-                Interest = Stake_details[_address].stake_amount * fixedinterest_rate *(block.timestamp -Stake_details[_address].starting_stake_time);
+                // uint256 fixed_time_before=block.timestamp - Stake_details[_address].starting_stake_time;
+                require( block.timestamp <  expirytime_forfixedstaking,"" );
+                Interest = (Stake_details[_address].stake_amount * fixedinterest_rate )/ 100 ;
                 console.log(Interest);
-                totalIntrestAmount = ((Interest * 96) / 100) /365 days;
+                totalIntrestAmount = (Interest * 96) / 100;
                 console.log(totalIntrestAmount);
-                // finalAmount = totalIntrestAmount -(totalIntrestAmount * penality_stake / 100) ;
                 finalAmount =totalIntrestAmount +Stake_details[_address].stake_amount;
                 console.log(finalAmount);
+                Token.transfer(_address, finalAmount);
+                delete Stake_details[_address];
+                Stake_details[msg.sender].isClaimed =true;
                 return finalAmount;
             }
         } 
         else if (Stake_details[_address].isFixed == false) {
-            Interest =Stake_details[_address].stake_amount *fixedinterest_rate *(block.timestamp - Stake_details[_address].starting_stake_time);
-                totalIntrestAmount =((Stake_details[_address].stake_amount + Interest) / 100) /365 days;
-                return totalIntrestAmount;
+            console.log("not fixed loop");
+            Interest =(Stake_details[_address].stake_amount *unfixedinterest_rate) /100 ;
+                console.log(Interest);
+                totalIntrestAmount =Stake_details[_address].stake_amount + Interest;
                 console.log(totalIntrestAmount);
-
+                Token.transfer(_address, totalIntrestAmount);
+                delete Stake_details[_address];
+                Stake_details[msg.sender].isClaimed =true;
+                return totalIntrestAmount;
         }
     }
 
     function TokenBalance(address _address) public view returns (uint256) {
         return Token.balanceOf(_address);
     }
+
+
+    function claimedRewards(address _address) public view returns (uint256) {
+    if (Stake_details[_address].isFixed == true) {
+        if (block.timestamp > Stake_details[msg.sender].stake_time) {
+            return Stake_details[_address].stake_amount + Interest;
+        } else {
+            return Stake_details[_address].stake_amount;
+        }
+    }
+    else if(block.timestamp < Stake_details[msg.sender].stake_time){
+         return finalAmount - totalIntrestAmount;
+    
+    }
+     else {
+        return Stake_details[_address].stake_amount + Interest;
+    }
+}
+
+function unclaimedRewards(address _address) public view  returns (uint256) {
+    if (Stake_details[_address].isFixed == true) {
+        if (Stake_details[_address].isClaimed == true) {
+            return 0;
+        } else {
+            return Interest;
+        }
+    } else {
+        if (Stake_details[_address].isClaimed == true) {
+            return 0;
+        } else {
+            return Interest;
+        }
+    }
+}
+
 
     function getcontractaddress() public returns (address) {
         return address(this);
